@@ -12,7 +12,7 @@ public abstract class GeneralMojo extends AbstractMojo {
 
     public void execute() throws MojoExecutionException, MojoFailureException {
         if (skipGoal) {
-            getLog().debug("Goal was skipped");
+            getLog().debug("Goal was skipped!");
         } else {
             doExecute();
         }

@@ -1,11 +1,11 @@
-##pg embedded plugin
+##  pg embedded plugin
 
 This is a maven plugin for for starting a embedded postgresql server.
 
 You can use this example to start the server during maven initialization lifecicle.
 
 
-#####Example:
+#####  Example:
 
     <plugin>
         <groupId>com.rbkmoney.maven.plugins</groupId>
@@ -36,7 +36,7 @@ You can use this example to start the server during maven initialization lifecic
         </executions>
     </plugin>
 
-#####Example for flyway and jooq:
+#####  Example for flyway and jooq:
 
     <plugin>
         <groupId>org.flywaydb</groupId>

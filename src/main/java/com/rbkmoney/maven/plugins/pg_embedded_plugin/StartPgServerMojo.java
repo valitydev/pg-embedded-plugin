@@ -36,23 +36,23 @@ public class StartPgServerMojo extends GeneralMojo {
     @Parameter(property = "dbDir")
     private String dbDir;
 
-    /** A port on which the instance will be raised */
+    /** Port on which the instance will be raised */
     @Parameter(property = "port", defaultValue = "15432", required = true)
     private int port;
 
-    /**  */
+    /** Database user name */
     @Parameter(property = "username", defaultValue = "postgres", required = true)
     private String userName;
 
-    /**  */
+    /** Database password */
     @Parameter(property = "password", defaultValue = "postgres")
     private String password;
 
-    /**  */
+    /** Database name */
     @Parameter(property = "dbName", required = true)
     private String dbName;
 
-    /**  */
+    /** Database schemas */
     @Parameter(property = "schemas", required = true)
     private List<String> schemas;
 

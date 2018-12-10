@@ -23,12 +23,12 @@ public class StopPgServerMojo extends GeneralMojo {
     protected void doExecute() throws MojoExecutionException, MojoFailureException {
         embeddedPostgres = StartPgServerMojo.getEmbeddedPostgres();
         if (embeddedPostgres == null) {
-            getLog().info("The PG server wasn't started");
+            getLog().info("The PostgreSQL server wasn't started!");
         } else {
             try {
-                getLog().info("Stopping the PG server...");
+                getLog().info("Stopping the PostgreSQL server...");
                 embeddedPostgres.close();
-                getLog().info("The PG server stopped");
+                getLog().info("The PostgreSQL server stopped");
             } catch (IOException e) {
                 getLog().error("Error encountered while stopping the server ", e);
             }
