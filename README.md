@@ -1,18 +1,23 @@
-##  pg embedded plugin
+##  PG Embedded plugin
 
-This is a maven plugin for for starting a embedded postgresql server.
+This is a maven plugin for for starting a __embedded postgresql server__.
+By default the server starts at the initialization stage and stops at the compile stage.
+Possible values in the configuration block:
+ * __dbDir__ (optional) - file directory of the instance (if it will be empty then files will create in a terger directory);
+ * __port__ (required; default 15432) - port on which the instance will be started;
+ * __dbName__ (required) - name of database witch will be created in the instance;
+ * __schemas__ (required) - list of scheme witch will be created in the instance.
 
-You can use this example to start the server during maven initialization lifecicle.
-
+You can use this __example__ to start the server during maven initialization lifecycle.
 
 #####  Example:
 
     <plugin>
         <groupId>com.rbkmoney.maven.plugins</groupId>
         <artifactId>pg-embedded-plugin</artifactId>
-        <version>1.0</version>
+        <version>1.2.1</version>
         <configuration>
-            <port>port</port> <!-- default: 15432 -->
+            <port>15432</port>
             <dbName>database_name</dbName>
             <schemas>
                 <schema>schema_name</schema>
@@ -31,78 +36,6 @@ You can use this example to start the server during maven initialization lifecic
                 <phase>compile</phase>
                 <goals>
                     <goal>stop</goal>
-                </goals>
-            </execution>
-        </executions>
-    </plugin>
-
-#####  Example for flyway and jooq:
-
-    <plugin>
-        <groupId>org.flywaydb</groupId>
-        <artifactId>flyway-maven-plugin</artifactId>
-        <version>${flyway.version}</version>
-        <configuration>
-            <url>${local.db.url}</url>
-            <user>${local.db.user}</user>
-            <password>${local.db.password}</password>
-            <schemas>
-                <schema>${local.db.scheme}</schema>
-            </schemas>
-        </configuration>
-        <executions>
-            <execution>
-                <id>migrate</id>
-                <phase>initialize</phase>
-                <goals>
-                    <goal>clean</goal>
-                    <goal>migrate</goal>
-                </goals>
-            </execution>
-        </executions>
-        <dependencies>
-            <dependency>
-                <groupId>org.postgresql</groupId>
-                <artifactId>postgresql</artifactId>
-                <version>${postgresql.jdbc.version}</version>
-            </dependency>
-        </dependencies>
-    </plugin>
-    <plugin>
-        <groupId>org.jooq</groupId>
-        <artifactId>jooq-codegen-maven</artifactId>
-        <version>${jooq.version}</version>
-        <configuration>
-            <jdbc>
-                <driver>org.postgresql.Driver</driver>
-                <url>${local.db.url}</url>
-                <user>${local.db.user}</user>
-                <password>${local.db.password}</password>
-            </jdbc>
-            <generator>
-                <generate>
-                    <javaTimeTypes>true</javaTimeTypes>
-                    <pojos>true</pojos>
-                    <pojosEqualsAndHashCode>true</pojosEqualsAndHashCode>
-                    <pojosToString>true</pojosToString>
-                </generate>
-                <database>
-                    <name>org.jooq.util.postgres.PostgresDatabase</name>
-                    <includes>.*</includes>
-                    <excludes>schema_version|.*func|get_adjustment.*|get_cashflow.*|get_payment.*|get_payout.*|get_refund.*</excludes>
-                    <inputSchema>${local.db.scheme}</inputSchema>
-                </database>
-                <target>
-                    <directory>target/generated-sources/db/</directory>
-                </target>
-            </generator>
-        </configuration>
-        <executions>
-            <execution>
-                <id>gen-src</id>
-                <phase>generate-sources</phase>
-                <goals>
-                    <goal>generate</goal>
                 </goals>
             </execution>
         </executions>
