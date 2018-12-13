@@ -14,6 +14,8 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -62,47 +64,46 @@ public class StartPgServerMojo extends GeneralMojo {
     /** Thread where the PostgreSQL server is running */
     private static Thread postgresThread;
 
+    /** Indicates that the server is up and running */
+    private static boolean running = false;
+
     @Override
     protected void doExecute() throws MojoExecutionException, MojoFailureException {
-        postgresThread = new Thread(() -> {
+        if (embeddedPostgres != null) {
+            getLog().warn("The PG server is already running!");
+        } else {
+            postgresThread = new Thread(() -> {
+                try {
+                    startPgServer();
+                    createDatabase();
+                    createSchemas();
+                    setServerRun();
+                } catch (IOException e) {
+                    getLog().error("Errors occurred while starting the PG server:", e);
+                } catch (SQLException e) {
+                    getLog().error("Errors occurred while creating objects:", e);
+                }
+            }, "PG-embedded-server");
+            postgresThread.start();
             try {
-                startPgServer();
-                createDatabase();
-                createSchemas();
-            } catch (IOException e) {
-                getLog().error("Errors occurred while starting the PG server:", e);
-            } catch (SQLException e) {
-                getLog().error("Errors occurred while creating objects:", e);
+                postgresThread.join();
+            } catch (InterruptedException e) {
+                throw new RuntimeException("Embedded Postgres thread was interrupted", e);
             }
-
-        }, "PG-embedded-server");
-        postgresThread.start();
-        try {
-            postgresThread.join();
-        } catch (InterruptedException e) {
-            throw new RuntimeException("Embedded Postgres thread was interrupted", e);
         }
     }
 
     /** Method starts PG server */
     private void startPgServer() throws IOException {
-        if (embeddedPostgres == null) {
-            getLog().info("The PG server is starting...");
-            EmbeddedPostgres.Builder builder = EmbeddedPostgres.builder();
-            String dbDir = prepareDbDir();
-            getLog().info("Dir for PG files: " + dbDir);
-            builder.setDataDirectory(dbDir);
-            builder.setPort(port);
-            //TODO: this can be implemented in the future...
-            //builder.setCleanDataDirectory(true);
-            //builder.setLocaleConfig();
-            //builder.setServerConfig();
-            //builder.setConnectConfig();
-            embeddedPostgres = builder.start();
-            getLog().info("The PG server was started!");
-        } else {
-            getLog().warn("The PG server is already running!");
-        }
+        getLog().info("The PG server is starting...");
+        EmbeddedPostgres.Builder builder = EmbeddedPostgres.builder();
+        String dbDir = prepareDbDir();
+        getLog().info("Dir for PG files: " + dbDir);
+        builder.setDataDirectory(dbDir);
+        builder.setPort(port);
+        //TODO: additional parameters should be added
+        embeddedPostgres = builder.start();
+        getLog().info("The PG server was started!");
     }
 
     /** The method creates a new database */
@@ -120,7 +121,6 @@ public class StartPgServerMojo extends GeneralMojo {
     /** The method creates a new schema in the created database */
     private void createSchemas() throws SQLException {
         DataSource database = embeddedPostgres.getDatabase(userName, dbName);
-
         try (Connection connection = database.getConnection()) {
             Statement statement = connection.createStatement();
             for (String schema : schemas) {
@@ -135,18 +135,38 @@ public class StartPgServerMojo extends GeneralMojo {
 
     /** The method sets the directory for placing postgre service files */
     private String prepareDbDir() {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
+        String currentDate = dateFormat.format(new Date());
         if (StringUtils.isEmpty(dbDir)) {
-            return projectBuildDir + File.separator + "pgdata";
+            return projectBuildDir + File.separator + "pgdata_" + currentDate;
         } else {
             return dbDir;
         }
     }
 
-    public static EmbeddedPostgres getEmbeddedPostgres() {
-        return embeddedPostgres;
+    /** This method stops the server */
+    public static void stopPgServer() throws IOException {
+        //TODO: Perhaps, it isn't very pefrect realisation and it will be redesign
+        if (isRunning() && embeddedPostgres != null) {
+            embeddedPostgres.close();
+            if (postgresThread != null) {
+                postgresThread.interrupt();
+            }
+            embeddedPostgres = null;
+            setServerStop();
+        }
     }
 
-    public static Thread getPostgresThread() {
-        return postgresThread;
+    private static void setServerRun() {
+        running = true;
     }
+
+    private static void setServerStop() {
+        running = false;
+    }
+
+    public static boolean isRunning() {
+        return running;
+    }
+
 }

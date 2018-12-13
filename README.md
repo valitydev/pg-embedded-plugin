@@ -8,6 +8,7 @@ Possible values in the configuration block:
  * __dbName__ (required) - name of database witch will be created in the instance;
  * __schemas__ (required) - list of scheme witch will be created in the instance.
 
+
 You can use this __example__ to start the server during maven initialization lifecycle.
 
 #####  Example:
@@ -15,7 +16,7 @@ You can use this __example__ to start the server during maven initialization lif
     <plugin>
         <groupId>com.rbkmoney.maven.plugins</groupId>
         <artifactId>pg-embedded-plugin</artifactId>
-        <version>1.2.1</version>
+        <version>1.3</version>
         <configuration>
             <port>15432</port>
             <dbName>database_name</dbName>
@@ -42,3 +43,5 @@ You can use this __example__ to start the server during maven initialization lif
     </plugin>
 
 
+__Attention:__ extremely important to pay attention to the stages of launching plug-ins dependent on the launch of this plugin. 
+For example, your flyway should runnin' on phase initialize and your JOOQ should runnin' on phase generate-sources
