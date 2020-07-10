@@ -6,16 +6,39 @@
     <parent>
         <groupId>com.rbkmoney</groupId>
         <artifactId>parent</artifactId>
-        <version>1.0.0</version>
+        <version>1.0.5</version>
     </parent>
 
     <groupId>com.rbkmoney.maven.plugins</groupId>
     <artifactId>pg-embedded-plugin</artifactId>
     <packaging>maven-plugin</packaging>
-    <version>1.4</version>
+    <version>1.5</version>
 
     <name>pg-embedded-plugin Maven Mojo</name>
     <description>The plugin starts the embedded PG server</description>
+    <url>https://github.com/rbkmoney/pg-embedded-plugin</url>
+
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <name>Dmitrii Baikov</name>
+            <email>d.baykov@rbkmoney.com</email>
+            <organization>RBK.money</organization>
+            <organizationUrl>https://rbk.money</organizationUrl>
+        </developer>
+    </developers>
+
+    <scm>
+        <connection>scm:git:git://github.com/rbkmoney/pg-embedded-plugin.git</connection>
+        <developerConnection>scm:git:ssh://github.com/rbkmoney/pg-embedded-plugin.git</developerConnection>
+        <url>https://github.com/rbkmoney/pg-embedded-plugin/tree/master</url>
+    </scm>
 
     <properties>
         <project.maintainer>Dmitrii Baikov &lt;d.baykov@rbkmoney.com&gt;</project.maintainer>

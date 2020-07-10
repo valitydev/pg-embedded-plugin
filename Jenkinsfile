@@ -1,5 +1,5 @@
 #!groovy
-build('pg_embedded_plugin', 'docker-host') {
+build('pg-embedded-plugin', 'docker-host') {
     checkoutRepo()
     loadBuildUtils()
 
@@ -8,6 +8,6 @@ build('pg_embedded_plugin', 'docker-host') {
         javaLibPipeline = load("build_utils/jenkins_lib/pipeJavaLib.groovy")
     }
 
-    def buildImageTag = "4799280a02cb73761a3ba3641285aac8ec4ec482"
+    def buildImageTag = "b04c5291d101132e53e578d96e1628d2e6dab0c0"
     javaLibPipeline(buildImageTag)
 }
