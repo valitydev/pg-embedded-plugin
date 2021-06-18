@@ -1,6 +1,6 @@
-package com.rbkmoney.maven.plugins.pg_embedded_plugin;
+package com.rbkmoney.maven.plugins.pg.embedded.plugin;
 
-import com.opentable.db.postgres.embedded.EmbeddedPostgres;
+import io.zonky.test.db.postgres.embedded.EmbeddedPostgres;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;

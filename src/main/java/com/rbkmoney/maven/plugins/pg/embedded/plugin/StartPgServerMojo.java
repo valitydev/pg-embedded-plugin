@@ -1,6 +1,6 @@
-package com.rbkmoney.maven.plugins.pg_embedded_plugin;
+package com.rbkmoney.maven.plugins.pg.embedded.plugin;
 
-import com.opentable.db.postgres.embedded.EmbeddedPostgres;
+import io.zonky.test.db.postgres.embedded.EmbeddedPostgres;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -17,6 +17,7 @@ import java.sql.Statement;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Class to start the embedded server
@@ -26,49 +27,69 @@ import java.util.List;
 @Mojo(name = "start", defaultPhase = LifecyclePhase.INITIALIZE)
 public class StartPgServerMojo extends GeneralMojo {
 
-    /** Directory where the project is located */
+    /**
+     * Directory where the project is located
+     */
     @Parameter(defaultValue = "${project.build.directory}")
     private String projectBuildDir;
 
-    /** PostgreSQL version */
-    @Parameter(property = "version")
-    private String version;
-
-    /** Directory that will host the service files of postgresql */
-    @Parameter(property = "dbDir")
+    /**
+     * Directory that will host the service files of postgresql
+     */
+    @Deprecated
+    @Parameter
     private String dbDir;
 
-    /** Port on which the instance will be raised */
-    @Parameter(property = "port", defaultValue = "15432", required = true)
+    /**
+     * Directory that will host the service files of postgresql
+     */
+    @Parameter
+    private String dir;
+
+    /**
+     * Port on which the instance will be raised
+     */
+    @Parameter(required = true)
     private int port;
 
-    /** Database user name */
-    @Parameter(property = "username", defaultValue = "postgres", required = true)
-    private String userName;
-
-    /** Database password */
-    @Parameter(property = "password", defaultValue = "postgres")
-    private String password;
-
-    /** Database name */
-    @Parameter(property = "dbName", required = true)
+    /**
+     * Database name
+     */
+    @Parameter(required = true)
+    @Deprecated
     private String dbName;
 
-    /** Database schemas */
-    @Parameter(property = "schemas", required = true)
+    /**
+     * Database name
+     */
+    @Parameter
+    private String name;
+
+    /**
+     * Database schemas
+     */
+    @Parameter(required = true)
     private List<String> schemas;
 
-    /** Instance of the PostgreSQL */
+    /**
+     * Instance of the PostgreSQL
+     */
     private static EmbeddedPostgres embeddedPostgres;
 
-    /** Thread where the PostgreSQL server is running */
+    /**
+     * Thread where the PostgreSQL server is running
+     */
     private static Thread postgresThread;
 
-    /** Indicates that the server is up and running */
+    /**
+     * Indicates that the server is up and running
+     */
     private static boolean running = false;
 
     @Override
     protected void doExecute() throws MojoExecutionException, MojoFailureException {
+        dir = Optional.ofNullable(dir).orElse(dbDir);
+        name = Optional.ofNullable(name).orElse(dbName);
         if (embeddedPostgres != null) {
             getLog().warn("The PG server is already running!");
         } else {
@@ -93,7 +114,9 @@ public class StartPgServerMojo extends GeneralMojo {
         }
     }
 
-    /** Method starts PG server */
+    /**
+     * Method starts PG server
+     */
     private void startPgServer() throws IOException {
         getLog().info("The PG server is starting...");
         EmbeddedPostgres.Builder builder = EmbeddedPostgres.builder();
@@ -106,21 +129,25 @@ public class StartPgServerMojo extends GeneralMojo {
         getLog().info("The PG server was started!");
     }
 
-    /** The method creates a new database */
+    /**
+     * The method creates a new database
+     */
     private void createDatabase() throws SQLException {
         try (Connection conn = embeddedPostgres.getPostgresDatabase().getConnection()) {
             Statement statement = conn.createStatement();
-            statement.execute("CREATE DATABASE " + dbName);
+            statement.execute("CREATE DATABASE " + name);
             statement.close();
         } catch (SQLException ex) {
-            getLog().error("An error occurred while creating the database "+ dbName);
+            getLog().error("An error occurred while creating the database " + name);
             throw ex;
         }
     }
 
-    /** The method creates a new schema in the created database */
+    /**
+     * The method creates a new schema in the created database
+     */
     private void createSchemas() throws SQLException {
-        DataSource database = embeddedPostgres.getDatabase(userName, dbName);
+        DataSource database = embeddedPostgres.getDatabase("postgres", name);
         try (Connection connection = database.getConnection()) {
             Statement statement = connection.createStatement();
             for (String schema : schemas) {
@@ -133,18 +160,22 @@ public class StartPgServerMojo extends GeneralMojo {
         }
     }
 
-    /** The method sets the directory for placing postgre service files */
+    /**
+     * The method sets the directory for placing postgre service files
+     */
     private String prepareDbDir() {
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
         String currentDate = dateFormat.format(new Date());
-        if (StringUtils.isEmpty(dbDir)) {
+        if (StringUtils.isEmpty(dir)) {
             return projectBuildDir + File.separator + "pgdata_" + currentDate;
         } else {
-            return dbDir;
+            return dir;
         }
     }
 
-    /** This method stops the server */
+    /**
+     * This method stops the server
+     */
     public static void stopPgServer() throws IOException {
         //TODO: Perhaps, it isn't very pefrect realisation and it will be redesign
         if (isRunning() && embeddedPostgres != null) {
