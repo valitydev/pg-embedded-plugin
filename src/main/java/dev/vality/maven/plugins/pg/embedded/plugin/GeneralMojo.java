@@ -1,4 +1,4 @@
-package com.rbkmoney.maven.plugins.pg.embedded.plugin;
+package dev.vality.maven.plugins.pg.embedded.plugin;
 
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;

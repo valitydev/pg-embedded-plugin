@@ -2,46 +2,43 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
     <parent>
-        <groupId>com.rbkmoney</groupId>
+        <groupId>dev.vality</groupId>
         <artifactId>library-parent-pom</artifactId>
-        <version>1.0.3</version>
+        <version>1.0.0</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
     <packaging>maven-plugin</packaging>
 
-    <groupId>com.rbkmoney.maven.plugins</groupId>
+    <groupId>dev.vality.maven.plugins</groupId>
     <artifactId>pg-embedded-plugin</artifactId>
-    <version>1.7</version>
+    <version>1.0.0</version>
 
     <name>pg-embedded-plugin Maven Mojo</name>
     <description>The plugin starts the embedded PG server</description>
-    <url>https://github.com/rbkmoney/pg-embedded-plugin</url>
+    <url>https://github.com/valitydev/pg-embedded-plugin</url>
 
     <licenses>
         <license>
             <name>The Apache Software License, Version 2.0</name>
-            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
         </license>
     </licenses>
 
     <developers>
         <developer>
-            <name>Dmitrii Baikov</name>
-            <email>d.baykov@rbkmoney.com</email>
-            <organization>RBK.money</organization>
-            <organizationUrl>https://rbk.money</organizationUrl>
+            <organization>Vality.Dev</organization>
+            <organizationUrl>https://vality.dev/</organizationUrl>
         </developer>
     </developers>
 
     <scm>
-        <connection>scm:git:git://github.com/rbkmoney/pg-embedded-plugin.git</connection>
-        <developerConnection>scm:git:ssh://github.com/rbkmoney/pg-embedded-plugin.git</developerConnection>
-        <url>https://github.com/rbkmoney/pg-embedded-plugin/tree/master</url>
+        <connection>scm:git:git://github.com/valitydev/pg-embedded-plugin.git</connection>
+        <developerConnection>scm:git:ssh://github.com/valitydev/pg-embedded-plugin.git</developerConnection>
+        <url>https://github.com/valitydev/pg-embedded-plugin/tree/master</url>
     </scm>
 
     <properties>
-        <project.maintainer>Dmitrii Baikov &lt;d.baykov@rbkmoney.com&gt;</project.maintainer>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <java.version>8</java.version>
@@ -51,22 +48,28 @@
         <dependency>
             <groupId>org.apache.maven</groupId>
             <artifactId>maven-plugin-api</artifactId>
-            <version>3.0.5</version>
+            <version>3.8.1</version>
         </dependency>
         <dependency>
             <groupId>org.apache.maven.plugin-tools</groupId>
             <artifactId>maven-plugin-annotations</artifactId>
-            <version>3.2</version>
+            <version>3.6.2</version>
         </dependency>
         <dependency>
             <groupId>org.apache.maven</groupId>
             <artifactId>maven-settings</artifactId>
-            <version>3.6.3</version>
+            <version>3.8.1</version>
         </dependency>
         <dependency>
             <groupId>io.zonky.test</groupId>
             <artifactId>embedded-postgres</artifactId>
-            <version>1.3.0</version>
+            <version>1.3.1</version>
+        </dependency>
+        <dependency>
+            <groupId>io.zonky.test.postgres</groupId>
+            <artifactId>embedded-postgres-binaries-darwin-amd64</artifactId>
+            <version>14.1.0</version>
+            <scope>runtime</scope>
         </dependency>
     </dependencies>
 
@@ -85,5 +88,4 @@
             </plugin>
         </plugins>
     </build>
-
 </project>

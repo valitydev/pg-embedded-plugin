@@ -13,9 +13,9 @@ You can use this __example__ to start the server during maven initialization lif
 
 #####  Example:
             <plugin>
-                <groupId>com.rbkmoney.maven.plugins</groupId>
+                <groupId>dev.vality.maven.plugins</groupId>
                 <artifactId>pg-embedded-plugin</artifactId>
-                <version>1.7</version>
+                <version>1.8</version>
                 <configuration>
                     <port>${db.port}</port>
                     <name>${db.name}</name>
