@@ -12,7 +12,7 @@
 
     <groupId>dev.vality.maven.plugins</groupId>
     <artifactId>pg-embedded-plugin</artifactId>
-    <version>1.0.1</version>
+    <version>1.1.0</version>
 
     <name>pg-embedded-plugin Maven Mojo</name>
     <description>The plugin starts the embedded PG server</description>
@@ -70,7 +70,7 @@
         <dependency>
             <groupId>io.zonky.test.postgres</groupId>
             <artifactId>embedded-postgres-binaries-darwin-amd64</artifactId>
-            <version>14.1.0</version>
+            <version>16.2.0</version>
             <scope>runtime</scope>
         </dependency>
     </dependencies>
