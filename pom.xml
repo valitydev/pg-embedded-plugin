@@ -87,6 +87,9 @@
                         <phase>process-classes</phase>
                     </execution>
                 </executions>
+                <configuration>
+                    <goalPrefix>dev.vality.maven.plugins</goalPrefix>
+                </configuration>
             </plugin>
         </plugins>
     </build>
