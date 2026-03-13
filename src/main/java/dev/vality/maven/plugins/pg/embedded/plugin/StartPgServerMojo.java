@@ -155,7 +155,7 @@ public class StartPgServerMojo extends GeneralMojo {
 
     private void createDatabase(EmbeddedPostgres embeddedPostgres, String databaseName) throws SQLException {
         try (Connection conn = embeddedPostgres.getPostgresDatabase().getConnection();
-             Statement statement = conn.createStatement()) {
+                Statement statement = conn.createStatement()) {
             statement.execute("CREATE DATABASE " + databaseName);
         } catch (SQLException ex) {
             getLog().error("An error occurred while creating the database " + databaseName);
@@ -166,7 +166,7 @@ public class StartPgServerMojo extends GeneralMojo {
     private void createSchemas(EmbeddedPostgres embeddedPostgres, String databaseName) throws SQLException {
         DataSource database = embeddedPostgres.getDatabase("postgres", databaseName);
         try (Connection connection = database.getConnection();
-             Statement statement = connection.createStatement()) {
+                Statement statement = connection.createStatement()) {
             for (String schema : schemas) {
                 statement.execute("CREATE SCHEMA " + schema);
             }
