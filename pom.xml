@@ -96,6 +96,9 @@
                     <family>mac</family>
                     <arch>x86_64</arch>
                 </os>
+                <property>
+                    <name>!postgres.binary.profile</name>
+                </property>
             </activation>
             <dependencies>
                 <dependency>
@@ -113,6 +116,9 @@
                     <name>Linux</name>
                     <arch>amd64</arch>
                 </os>
+                <property>
+                    <name>!postgres.binary.profile</name>
+                </property>
             </activation>
             <dependencies>
                 <dependency>
@@ -130,6 +136,77 @@
                     <family>windows</family>
                     <arch>amd64</arch>
                 </os>
+                <property>
+                    <name>!postgres.binary.profile</name>
+                </property>
+            </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>io.zonky.test.postgres</groupId>
+                    <artifactId>embedded-postgres-binaries-windows-amd64</artifactId>
+                    <version>16.2.0</version>
+                    <scope>runtime</scope>
+                </dependency>
+            </dependencies>
+        </profile>
+        <profile>
+            <id>postgres-binaries-manual-darwin-amd64</id>
+            <activation>
+                <property>
+                    <name>postgres.binary.profile</name>
+                    <value>darwin-amd64</value>
+                </property>
+            </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>io.zonky.test.postgres</groupId>
+                    <artifactId>embedded-postgres-binaries-darwin-amd64</artifactId>
+                    <version>16.2.0</version>
+                    <scope>runtime</scope>
+                </dependency>
+            </dependencies>
+        </profile>
+        <profile>
+            <id>postgres-binaries-manual-linux-amd64</id>
+            <activation>
+                <property>
+                    <name>postgres.binary.profile</name>
+                    <value>linux-amd64</value>
+                </property>
+            </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>io.zonky.test.postgres</groupId>
+                    <artifactId>embedded-postgres-binaries-linux-amd64</artifactId>
+                    <version>16.2.0</version>
+                    <scope>runtime</scope>
+                </dependency>
+            </dependencies>
+        </profile>
+        <profile>
+            <id>postgres-binaries-manual-linux-amd64-alpine</id>
+            <activation>
+                <property>
+                    <name>postgres.binary.profile</name>
+                    <value>linux-amd64-alpine</value>
+                </property>
+            </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>io.zonky.test.postgres</groupId>
+                    <artifactId>embedded-postgres-binaries-linux-amd64-alpine</artifactId>
+                    <version>16.2.0</version>
+                    <scope>runtime</scope>
+                </dependency>
+            </dependencies>
+        </profile>
+        <profile>
+            <id>postgres-binaries-manual-windows-amd64</id>
+            <activation>
+                <property>
+                    <name>postgres.binary.profile</name>
+                    <value>windows-amd64</value>
+                </property>
             </activation>
             <dependencies>
                 <dependency>

@@ -73,9 +73,23 @@ profiles for:
 - Linux amd64
 - Windows amd64
 
+By default this selection is automatic and is based on the current OS.
+
+If you need to override it explicitly, for example in CI, set
+`postgres.binary.profile`:
+
+```bash
+mvn -Dpostgres.binary.profile=linux-amd64 ...
+```
+
+Supported manual values:
+- `darwin-amd64`
+- `linux-amd64`
+- `linux-amd64-alpine`
+- `windows-amd64`
+
 If you need another runtime package, add another profile dependency in the
-plugin `pom.xml`. For example, Linux Alpine may require
-`embedded-postgres-binaries-linux-amd64-alpine`.
+plugin `pom.xml`.
 
 ### Notes
 
