@@ -11,6 +11,7 @@ jobs:
     uses: valitydev/java-workflow/.github/workflows/maven-library-deploy.yml@v3
     with:
       java-version: '15'
+      java-distribution: 'adopt'
     secrets:
       server-username: ${{ secrets.OSSRH_USERNAME }}
       server-password: ${{ secrets.OSSRH_TOKEN }}
