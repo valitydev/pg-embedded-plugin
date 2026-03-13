@@ -8,7 +8,7 @@ on:
 
 jobs:
   deploy:
-    uses: valitydev/java-workflow/.github/workflows/maven-library-deploy.yml@v3
+    uses: valitydev/java-workflow/.github/workflows/maven-library-deploy.yml@v4
     with:
       java-version: '15'
       java-distribution: 'adopt'
