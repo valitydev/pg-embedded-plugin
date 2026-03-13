@@ -15,22 +15,20 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.SimpleDateFormat;
+import java.time.Duration;
 import java.util.Date;
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
 
 /**
  * Class to start the embedded server
  *
  * @author d.baykov
  */
-@Mojo(name = "start", defaultPhase = LifecyclePhase.INITIALIZE)
+@Mojo(name = "start", defaultPhase = LifecyclePhase.GENERATE_SOURCES, threadSafe = true)
 public class StartPgServerMojo extends GeneralMojo {
 
-    /**
-     * Directory where the project is located
-     */
-    @Parameter(defaultValue = "${project.build.directory}")
+    @Parameter(defaultValue = "${project.build.directory}", required = true)
     private String projectBuildDir;
 
     /**
@@ -55,8 +53,8 @@ public class StartPgServerMojo extends GeneralMojo {
     /**
      * Database name
      */
-    @Parameter(required = true)
     @Deprecated
+    @Parameter
     private String dbName;
 
     /**
@@ -72,132 +70,221 @@ public class StartPgServerMojo extends GeneralMojo {
     private List<String> schemas;
 
     /**
-     * Instance of the PostgreSQL
+     * PostgreSQL server parameters, e.g. shared_buffers, dynamic_shared_memory_type.
      */
-    private static EmbeddedPostgres embeddedPostgres;
+    @Parameter
+    private Map<String, String> serverConfig;
 
     /**
-     * Thread where the PostgreSQL server is running
+     * PostgreSQL locale parameters, e.g. lc_messages.
      */
-    private static Thread postgresThread;
+    @Parameter
+    private Map<String, String> localeConfig;
 
     /**
-     * Indicates that the server is up and running
+     * PostgreSQL client connection defaults, e.g. user, loggerLevel.
      */
-    private static boolean running = false;
+    @Parameter
+    private Map<String, String> connectConfig;
+
+    /**
+     * Working directory for initdb and postgres process.
+     */
+    @Parameter
+    private String workingDirectory;
+
+    /**
+     * Whether to clean the data directory before start.
+     */
+    @Parameter(defaultValue = "false")
+    private boolean cleanDataDirectory;
+
+    /**
+     * Startup wait timeout in milliseconds.
+     */
+    @Parameter(defaultValue = "60000")
+    private long startupWaitMillis;
 
     @Override
     protected void doExecute() throws MojoExecutionException, MojoFailureException {
-        dir = Optional.ofNullable(dir).orElse(dbDir);
-        name = Optional.ofNullable(name).orElse(dbName);
-        if (embeddedPostgres != null) {
+        PostgresRuntimeState runtimeState = getPostgresRuntimeState();
+        if (runtimeState != null) {
             getLog().warn("The PG server is already running!");
-        } else {
-            postgresThread = new Thread(() -> {
-                try {
-                    startPgServer();
-                    createDatabase();
-                    createSchemas();
-                    setServerRun();
-                } catch (IOException e) {
-                    getLog().error("Errors occurred while starting the PG server:", e);
-                } catch (SQLException e) {
-                    getLog().error("Errors occurred while creating objects:", e);
-                }
-            }, "PG-embedded-server");
-            postgresThread.start();
-            try {
-                postgresThread.join();
-            } catch (InterruptedException e) {
-                throw new RuntimeException("Embedded Postgres thread was interrupted", e);
-            }
+            return;
+        }
+
+        String dataDirectory = resolveDataDirectory();
+        String databaseName = resolveDatabaseName();
+
+        try {
+            EmbeddedPostgres embeddedPostgres = startPgServer(dataDirectory);
+            createDatabase(embeddedPostgres, databaseName);
+            createSchemas(embeddedPostgres, databaseName);
+            Thread shutdownHook = registerShutdownHook();
+            setPostgresRuntimeState(new PostgresRuntimeState(embeddedPostgres, shutdownHook));
+        } catch (IOException ex) {
+            throw new MojoExecutionException("Errors occurred while starting the PG server", ex);
+        } catch (SQLException ex) {
+            tryStopServerQuietly();
+            throw new MojoExecutionException("Errors occurred while creating PG objects", ex);
         }
     }
 
-    /**
-     * Method starts PG server
-     */
-    private void startPgServer() throws IOException {
+    private EmbeddedPostgres startPgServer(String dataDirectory) throws IOException {
         getLog().info("The PG server is starting...");
         EmbeddedPostgres.Builder builder = EmbeddedPostgres.builder();
-        String dbDir = prepareDbDir();
-        getLog().info("Dir for PG files: " + dbDir);
-        builder.setDataDirectory(dbDir);
+        getLog().info("Dir for PG files: " + dataDirectory);
+
+        builder.setDataDirectory(dataDirectory);
         builder.setPort(port);
-        //TODO: additional parameters should be added
-        embeddedPostgres = builder.start();
+        builder.setCleanDataDirectory(cleanDataDirectory);
+        builder.setPGStartupWait(Duration.ofMillis(startupWaitMillis));
+
+        if (StringUtils.isNotBlank(workingDirectory)) {
+            builder.setOverrideWorkingDirectory(new File(workingDirectory));
+        }
+
+        applyConfig(builder, serverConfig, ConfigType.SERVER);
+        applyConfig(builder, localeConfig, ConfigType.LOCALE);
+        applyConfig(builder, connectConfig, ConfigType.CONNECT);
+
+        EmbeddedPostgres embeddedPostgres = builder.start();
         getLog().info("The PG server was started!");
+        return embeddedPostgres;
     }
 
-    /**
-     * The method creates a new database
-     */
-    private void createDatabase() throws SQLException {
-        try (Connection conn = embeddedPostgres.getPostgresDatabase().getConnection()) {
-            Statement statement = conn.createStatement();
-            statement.execute("CREATE DATABASE " + name);
-            statement.close();
+    private void createDatabase(EmbeddedPostgres embeddedPostgres, String databaseName) throws SQLException {
+        try (Connection conn = embeddedPostgres.getPostgresDatabase().getConnection();
+             Statement statement = conn.createStatement()) {
+            statement.execute("CREATE DATABASE " + databaseName);
         } catch (SQLException ex) {
-            getLog().error("An error occurred while creating the database " + name);
+            getLog().error("An error occurred while creating the database " + databaseName);
             throw ex;
         }
     }
 
-    /**
-     * The method creates a new schema in the created database
-     */
-    private void createSchemas() throws SQLException {
-        DataSource database = embeddedPostgres.getDatabase("postgres", name);
-        try (Connection connection = database.getConnection()) {
-            Statement statement = connection.createStatement();
+    private void createSchemas(EmbeddedPostgres embeddedPostgres, String databaseName) throws SQLException {
+        DataSource database = embeddedPostgres.getDatabase("postgres", databaseName);
+        try (Connection connection = database.getConnection();
+             Statement statement = connection.createStatement()) {
             for (String schema : schemas) {
                 statement.execute("CREATE SCHEMA " + schema);
             }
-            statement.close();
         } catch (SQLException ex) {
             getLog().error("An error occurred while creating the schemas " + schemas);
             throw ex;
         }
     }
 
-    /**
-     * The method sets the directory for placing postgre service files
-     */
-    private String prepareDbDir() {
+    private Thread registerShutdownHook() {
+        Thread shutdownHook = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                tryStopServerQuietly();
+            }
+        }, "PG-embedded-shutdown-hook");
+        Runtime.getRuntime().addShutdownHook(shutdownHook);
+        return shutdownHook;
+    }
+
+    private void applyConfig(
+            EmbeddedPostgres.Builder builder,
+            Map<String, String> config,
+            ConfigType configType
+    ) {
+        if (config == null || config.isEmpty()) {
+            return;
+        }
+
+        for (Map.Entry<String, String> entry : config.entrySet()) {
+            if (entry.getValue() == null) {
+                continue;
+            }
+
+            switch (configType) {
+                case SERVER:
+                    builder.setServerConfig(entry.getKey(), entry.getValue());
+                    break;
+                case LOCALE:
+                    builder.setLocaleConfig(entry.getKey(), entry.getValue());
+                    break;
+                case CONNECT:
+                    builder.setConnectConfig(entry.getKey(), entry.getValue());
+                    break;
+                default:
+                    throw new IllegalArgumentException("Unsupported config type " + configType);
+            }
+        }
+    }
+
+    private String resolveDatabaseName() throws MojoExecutionException {
+        if (StringUtils.isNotBlank(name)) {
+            if (StringUtils.isNotBlank(dbName)) {
+                getLog().warn("Parameter 'dbName' is deprecated and ignored because 'name' is provided");
+            }
+            return name;
+        }
+        if (StringUtils.isNotBlank(dbName)) {
+            getLog().warn("Parameter 'dbName' is deprecated; use 'name' instead");
+            return dbName;
+        }
+        throw new MojoExecutionException("Either 'name' or deprecated 'dbName' must be provided");
+    }
+
+    private String resolveDataDirectory() {
+        String resolvedDir = StringUtils.defaultIfBlank(dir, dbDir);
+        if (StringUtils.isNotBlank(dir) && StringUtils.isNotBlank(dbDir)) {
+            getLog().warn("Parameter 'dbDir' is deprecated and ignored because 'dir' is provided");
+        } else if (StringUtils.isBlank(dir) && StringUtils.isNotBlank(dbDir)) {
+            getLog().warn("Parameter 'dbDir' is deprecated; use 'dir' instead");
+        }
+
+        if (StringUtils.isNotBlank(resolvedDir)) {
+            return resolvedDir;
+        }
+
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
         String currentDate = dateFormat.format(new Date());
-        if (StringUtils.isEmpty(dir)) {
-            return projectBuildDir + File.separator + "pgdata_" + currentDate;
-        } else {
-            return dir;
+        return projectBuildDir + File.separator + "pgdata_" + currentDate;
+    }
+
+    private void tryStopServerQuietly() {
+        PostgresRuntimeState runtimeState = getPostgresRuntimeState();
+        if (runtimeState == null) {
+            return;
+        }
+
+        try {
+            runtimeState.getEmbeddedPostgres().close();
+        } catch (IOException ex) {
+            getLog().warn("Failed to stop the PostgreSQL server during cleanup", ex);
+        } finally {
+            removeShutdownHook(runtimeState.getShutdownHook());
+            clearPostgresRuntimeState();
         }
     }
 
-    /**
-     * This method stops the server
-     */
-    public static void stopPgServer() throws IOException {
-        //TODO: Perhaps, it isn't very pefrect realisation and it will be redesign
-        if (isRunning() && embeddedPostgres != null) {
-            embeddedPostgres.close();
-            if (postgresThread != null) {
-                postgresThread.interrupt();
-            }
-            embeddedPostgres = null;
-            setServerStop();
+    static void stopPgServer(GeneralMojo mojo) throws IOException {
+        PostgresRuntimeState runtimeState = mojo.getPostgresRuntimeState();
+        if (runtimeState == null) {
+            return;
+        }
+
+        try {
+            runtimeState.getEmbeddedPostgres().close();
+        } finally {
+            mojo.removeShutdownHook(runtimeState.getShutdownHook());
+            mojo.clearPostgresRuntimeState();
         }
     }
 
-    private static void setServerRun() {
-        running = true;
+    static boolean isRunning(GeneralMojo mojo) {
+        return mojo.getPostgresRuntimeState() != null;
     }
 
-    private static void setServerStop() {
-        running = false;
+    private enum ConfigType {
+        SERVER,
+        LOCALE,
+        CONNECT
     }
-
-    public static boolean isRunning() {
-        return running;
-    }
-
 }
