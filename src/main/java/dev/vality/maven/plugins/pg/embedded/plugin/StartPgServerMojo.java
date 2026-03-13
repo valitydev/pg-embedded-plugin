@@ -96,13 +96,13 @@ public class StartPgServerMojo extends GeneralMojo {
     /**
      * Whether to clean the data directory before start.
      */
-    @Parameter(defaultValue = "false")
+    @Parameter(defaultValue = "true")
     private boolean cleanDataDirectory;
 
     /**
      * Startup wait timeout in milliseconds.
      */
-    @Parameter(defaultValue = "60000")
+    @Parameter(defaultValue = "30000")
     private long startupWaitMillis;
 
     @Override

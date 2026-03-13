@@ -33,7 +33,7 @@ Example:
 <plugin>
     <groupId>dev.vality.maven.plugins</groupId>
     <artifactId>pg-embedded-plugin</artifactId>
-    <version>2.0.1-SNAPSHOT</version>
+    <version>3.0.0</version>
     <configuration>
         <port>${db.port}</port>
         <name>${db.name}</name>
@@ -95,6 +95,8 @@ plugin `pom.xml`.
 
 - `name` is the current parameter. `dbName` still works but is deprecated.
 - `dir` is the current parameter. `dbDir` still works but is deprecated.
+- `cleanDataDirectory` defaults to `true`.
+- `startupWaitMillis` defaults to `30000`.
 - The plugin keeps runtime state in the Maven plugin context and also registers
   a JVM shutdown hook, so cleanup does not depend only on reaching the `stop`
   phase.
