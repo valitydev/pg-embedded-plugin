@@ -7,4 +7,7 @@ on:
 
 jobs:
   build:
-    uses: valitydev/java-workflow/.github/workflows/maven-library-build.yml@v1
+    uses: valitydev/java-workflow/.github/workflows/maven-library-build.yml@v3
+    with:
+      java-version: '8'
+      distribution: 'adopt'
