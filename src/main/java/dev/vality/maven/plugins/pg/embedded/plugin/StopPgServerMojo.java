@@ -1,6 +1,5 @@
 package dev.vality.maven.plugins.pg.embedded.plugin;
 
-import io.zonky.test.db.postgres.embedded.EmbeddedPostgres;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
@@ -13,24 +12,21 @@ import java.io.IOException;
  *
  * @author d.baykov
  */
-@Mojo(name = "stop", defaultPhase = LifecyclePhase.COMPILE, threadSafe = true)
+@Mojo(name = "stop", defaultPhase = LifecyclePhase.PROCESS_SOURCES, threadSafe = true)
 public class StopPgServerMojo extends GeneralMojo {
-
-    /** Instance of the PostgreSQL */
-    private EmbeddedPostgres embeddedPostgres;
 
     @Override
     protected void doExecute() throws MojoExecutionException, MojoFailureException {
         try {
-            if (StartPgServerMojo.isRunning()) {
+            if (StartPgServerMojo.isRunning(this)) {
                 getLog().info("Stopping the PostgreSQL server...");
-                StartPgServerMojo.stopPgServer();
+                StartPgServerMojo.stopPgServer(this);
                 getLog().info("The PostgreSQL server stopped");
             } else {
                 getLog().info("The PostgreSQL server wasn't started!");
             }
         } catch (IOException e) {
-            getLog().error("Error encountered while stopping the server ", e);
+            throw new MojoExecutionException("Error encountered while stopping the server", e);
         }
     }
 }
